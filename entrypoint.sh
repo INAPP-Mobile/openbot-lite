@@ -24,6 +24,67 @@ KEY_FILE="$VOL/.openbot.key"
 
 export EMBEDDED_POSTGRES="${EMBEDDED_POSTGRES:-on}"
 
+# --- Trusted-origin / sign-in mode gates ------------------------------------
+# The app (server/src/config.ts, singleUserAllowed) refuses to start when:
+#   * no sign-in provider is configured AND no single-user flag, OR
+#   * single-user mode is on AND any declared address it can reach is public.
+# Reachability is judged from OPENBOT_PUBLIC_URL, OPENBOT_APP_URL and every
+# TRUSTED_ORIGINS entry; UNPARSEABLE counts as public — so a deployer leaving
+# a placeholder domain (as .env.example strings do) crash-loops the container.
+#
+# This shim makes both supported postures work regardless of what the deployer
+# left in the environment:
+#   * SSO provider configured -> serve at the public domain: anchor
+#     BETTER_AUTH_URL/TRUSTED_ORIGINS to it and turn single-user off (with SSO,
+#     every-visitor-is-admin is the wrong posture).
+#   * No provider             -> single-user mode with loopback declared
+#     origins. That is the upstream-documented "one administrator, no sign-in"
+#     shape; the browser still reaches the app over whatever URL it is served
+#     at (the gate reads the declared addresses, not the network).
+if [ -n "${RAILWAY_PUBLIC_DOMAIN:-}" ]; then PUB=https://"$RAILWAY_PUBLIC_DOMAIN"; else PUB=""; fi
+
+have_provider=0
+if [ -n "${GOOGLE_OAUTH_CLIENT_ID:-}" ] || [ -n "${MICROSOFT_OAUTH_CLIENT_ID:-}" ] || [ -n "${OKTA_OAUTH_CLIENT_ID:-}" ]; then
+  have_provider=1
+fi
+
+AUTH_SECRET_FILE="$VOL/.openbot.authsecret"
+bootstrap_auth_secret() {
+  [ -n "${BETTER_AUTH_SECRET:-}" ] && { export BETTER_AUTH_SECRET; return; }
+  if [ -s "$AUTH_SECRET_FILE" ]; then
+    BETTER_AUTH_SECRET="$(cat "$AUTH_SECRET_FILE")"
+  else
+    BETTER_AUTH_SECRET="$(head -c 32 /dev/urandom | base64 -w0)"
+    printf '%s' "$BETTER_AUTH_SECRET" > "$AUTH_SECRET_FILE" 2>/dev/null || true
+  fi
+  export BETTER_AUTH_SECRET
+  mkdir -p /run/s6/container_environment 2>/dev/null || true
+  printf 'BETTER_AUTH_SECRET=%s\n' "$BETTER_AUTH_SECRET" > /run/s6/container_environment/BETTER_AUTH_SECRET 2>/dev/null || true
+}
+
+if [ "$have_provider" -eq 1 ]; then
+  export OPENBOT_SINGLE_USER=false
+  bootstrap_auth_secret
+  if [ -n "$PUB" ]; then
+    export BETTER_AUTH_URL="${BETTER_AUTH_URL:-$PUB}"
+    case ",${TRUSTED_ORIGINS:-}" in
+      *",$PUB"*) ;;  # already anchored, keep the caller's extra origins
+      *) export TRUSTED_ORIGINS="$PUB${TRUSTED_ORIGINS:+,$TRUSTED_ORIGINS}" ;;
+    esac
+  fi
+  echo "[openbot-entrypoint] SSO mode: single-user off, BETTER_AUTH_URL=$BETTER_AUTH_URL" >&2
+else
+  export OPENBOT_SINGLE_USER=true
+  # Keep the declared list only if it already names a loopback host (that
+  # always passes the gate); any public-looking entry — including a leftover
+  # placeholder — is replaced with the loopback set the app itself falls back
+  # to. Empty TRUSTED_ORIGINS boot-tested clean.
+  case " ${TRUSTED_ORIGINS:-} " in
+    *localhost*|*127.0.0.1*|*\[::1\]*) : ;;
+    *) export TRUSTED_ORIGINS="http://127.0.0.1:3001,http://[::1]:3001,http://localhost:3001" ;;
+  esac
+fi
+
 if [ -z "${KEY_ENCRYPTION_KEY:-}" ]; then
   if [ -s "$KEY_FILE" ]; then
     # Reuse the key we persisted on first boot (survives container re-creation).

@@ -1,94 +1,67 @@
 {
   "PORT": {
-    "value": "3001",
-    "description": "HTTP listen port (must match EXPOSE and the domain port)"
+    "defaultValue": "3001",
+    "description": "HTTP listen port (must match EXPOSE and the domain port)",
+    "isOptional": true
   },
   "SERVER_PORT": {
-    "value": "3001",
-    "description": "Server port used by the startup proxy check. Must equal PORT."
+    "defaultValue": "3001",
+    "description": "Server port used by the startup proxy check. Must equal PORT.",
+    "isOptional": true
   },
   "INTELLIGENCE_API_URL": {
-    "value": "https://api.intelligence.copilotkit.ai",
-    "description": "CopilotKit Intelligence platform API (durable threads, memory, history). Required."
+    "defaultValue": "https://api.intelligence.copilotkit.ai",
+    "description": "CopilotKit Intelligence platform API (durable threads, memory, history). Required.",
+    "isOptional": false
   },
   "INTELLIGENCE_GATEWAY_WS_URL": {
-    "value": "wss://realtime.intelligence.copilotkit.ai",
-    "description": "CopilotKit Intelligence realtime gateway (WebSocket). Required."
+    "defaultValue": "wss://realtime.intelligence.copilotkit.ai",
+    "description": "CopilotKit Intelligence realtime gateway (WebSocket). Required.",
+    "isOptional": false
   },
   "INTELLIGENCE_API_KEY": {
-    "value": "${{secret(32)}}",
-    "description": "CopilotKit Intelligence project runtime key (cpk-...). Get one at https://intelligence.copilotkit.ai (API Keys) or via the CopilotKit CLI. Required."
+    "defaultValue": "${{secret(32)}}",
+    "description": "CopilotKit Intelligence project runtime key (cpk-...). Get one at https://intelligence.copilotkit.ai (API Keys) or via the CopilotKit CLI. Required.",
+    "isOptional": false
   },
   "OPENAI_API_KEY": {
-    "value": "${{secret(32)}}",
-    "description": "OpenAI (or OpenAI-compatible) API key used by the built-in bots. Replace with a real key. Required."
-  },
-  "OPENAI_BASE_URL": {
-    "value": "",
-    "description": "Optional base URL for an OpenAI-compatible endpoint (vLLM, Ollama, LiteLLM). Leave empty for api.openai.com."
-  },
-  "TRUSTED_ORIGINS": {
-    "value": "${{RAILWAY_PUBLIC_DOMAIN}}",
-    "description": "Origin(s) the app is served from (comma-separated). Defaults to your Railway public domain."
-  },
-  "OPENBOT_SINGLE_USER": {
-    "value": "true",
-    "description": "Run as a single administrator with no sign-in screen (every visitor = admin). Set to false once you configure an SSO provider."
-  },
-  "BETTER_AUTH_SECRET": {
-    "value": "${{secret(48)}}",
-    "description": "Session-cookie signing secret (32+ chars). Required when SSO sign-in is turned on."
-  },
-  "BETTER_AUTH_URL": {
-    "value": "https://${{RAILWAY_PUBLIC_DOMAIN}}",
-    "description": "Public API URL where OAuth callbacks land. Defaults to your Railway public domain."
-  },
-  "INITIAL_ADMIN_EMAILS": {
-    "value": "",
-    "description": "Comma-separated emails granted the admin role (required when OPENBOT_SINGLE_USER=false)."
-  },
-  "GOOGLE_OAUTH_CLIENT_ID": {
-    "value": "",
-    "description": "Google OAuth client ID (configure to enable Google sign-in)."
-  },
-  "GOOGLE_OAUTH_CLIENT_SECRET": {
-    "value": "",
-    "description": "Google OAuth client secret (configure to enable Google sign-in)."
-  },
-  "MICROSOFT_OAUTH_CLIENT_ID": {
-    "value": "",
-    "description": "Microsoft (Entra ID) OAuth client ID."
-  },
-  "MICROSOFT_OAUTH_CLIENT_SECRET": {
-    "value": "",
-    "description": "Microsoft (Entra ID) OAuth client secret."
-  },
-  "MICROSOFT_OAUTH_TENANT_ID": {
-    "value": "common",
-    "description": "Microsoft tenant ID; 'common' admits personal accounts too. Set your directory GUID for company-only."
-  },
-  "OKTA_OAUTH_CLIENT_ID": {
-    "value": "",
-    "description": "Okta OAuth client ID."
-  },
-  "OKTA_OAUTH_CLIENT_SECRET": {
-    "value": "",
-    "description": "Okta OAuth client secret."
-  },
-  "OKTA_OAUTH_ISSUER": {
-    "value": "",
-    "description": "Okta issuer URL, e.g. https://example.okta.com/oauth2/default."
+    "defaultValue": "${{secret(32)}}",
+    "description": "OpenAI (or OpenAI-compatible) API key used by the built-in bots. Replace with a real key. Required.",
+    "isOptional": false
   },
   "MANAGED_AGENT_AG_UI_URL": {
-    "value": "",
-    "description": "Optional external AG-UI agent endpoint (LangGraph / Mastra / CrewAI harness). Requires MANAGED_AGENT_TOKEN."
+    "defaultValue": "",
+    "description": "External AG-UI harness endpoint (LangGraph/Mastra/CrewAI). Requires MANAGED_AGENT_TOKEN.",
+    "isOptional": true
   },
   "MANAGED_AGENT_TOKEN": {
-    "value": "",
-    "description": "Bearer token presented by the external AG-UI harness when calling tools back."
+    "defaultValue": "",
+    "description": "Bearer token presented by the external AG-UI harness when calling tools back.",
+    "isOptional": true
   },
   "AUDIT_RETENTION_DAYS": {
-    "value": "",
-    "description": "How many days of audit trail to keep. Empty (default) keeps everything \u2014 the trail is append-only."
+    "defaultValue": "",
+    "description": "How many days of audit trail to keep. Empty (default) keeps everything \u2014 the trail is append-only.",
+    "isOptional": true
+  },
+  "MAX_BOTS": {
+    "defaultValue": "3",
+    "description": "Maximum bots this deployment holds (upstream default is unlimited)",
+    "isOptional": true
+  },
+  "AGENT_STALL_TIMEOUT_MS": {
+    "defaultValue": "60000",
+    "description": "ms of stream silence before a turn is ended.",
+    "isOptional": true
+  },
+  "WORKER_SHARED_SECRET": {
+    "defaultValue": "",
+    "description": "Routine-worker handoff secret. Empty disables routine workers.",
+    "isOptional": true
+  },
+  "COMPUTER_SANDBOX": {
+    "defaultValue": "off",
+    "description": "Chromium sandbox inside the bot computer (off works under default container seccomp).",
+    "isOptional": true
   }
 }
