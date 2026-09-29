@@ -1,6 +1,6 @@
 # Deploy and Host
 
-[![Deploy on Railway](https://railway.app/button.svg)](https://railway.com/deploy/openbot-lite)
+[![Deploy on Railway](https://railway.app/button.svg)](https://railway.com/deploy/openbot-lite-1)
 
 **OpenBot Lite** — [OpenBot](https://github.com/CopilotKit/OpenBot) by CopilotKit — is an open-source AI-coworker runtime that speaks the [AG-UI protocol](https://github.com/agent-protocol): persistent coworker bots with a policy gateway, a credential vault, and an append-only audit log — with any agent harness (built-in bots, or external LangGraph / Mastra / CrewAI agents over AG-UI).
 
