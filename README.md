@@ -31,24 +31,28 @@ Two things are **mandatory** — the server refuses to start without them, by de
 ## System Requirements
 
 - **RAM:** 2 GB+ recommended (embedded Postgres + bot runtime + Chromium)
-- **Disk:** 3 Railway volumes — 10 GB database, 5 GB bot workspaces, 5 GB browser profiles
+- **Disk:** 1 Railway volume (5 GB minimum) — Postgres cluster, credential vault, audit trail, **and** bot workspaces + Chromium profiles all live on it
 - **Network:** HTTPS domain; outbound to your LLM endpoint and to `*.intelligence.copilotkit.ai`
 - **Accounts:** a CopilotKit Intelligence project (Pro) + an OpenAI (or compatible) API key
 
 ## About Hosting
 
-Single service, Dockerfile build from the pinned upstream image, plus a tiny entrypoint shim that does two things the base image won't do for a fresh deployment:
+Single service, Dockerfile build from the pinned upstream image, plus a small entrypoint shim that does the things a fresh Railway deployment needs that the base image won't do by itself:
 
-1. **Stable KEY_ENCRYPTION_KEY** — auto-generated once, persisted beside the Postgres cluster on the volume, re-exported on every boot. The app refuses to start with the public placeholder key, and a key rotated out from under the vault would corrupt it.
-2. **Embedded Postgres on** — the base image ships `EMBEDDED_POSTGRES=off` (multi-container shape); we set it `on` so the whole stack runs in one container.
+1. **Stable KEY_ENCRYPTION_KEY** — auto-generated once, persisted on the volume, re-exported every boot. The app refuses to start with the public placeholder key; a key rotated out from under the vault would corrupt stored secrets.
+2. **Sign-in gate** — detects whether an SSO provider is configured and puts the app into the matching posture (single-user for a private desk, SSO for a shared domain), anchoring `BETTER_AUTH_URL`/`TRUSTED_ORIGINS` to the public domain so the app's "no public origin while single-user" and "no sign-in configured" boot guards are always satisfied.
+3. **Embedded Postgres on** — the base image ships `EMBEDDED_POSTGRES=off` (multi-container shape); we set it `on` so the whole stack runs in one container.
+4. **Bot state on the one volume** — the base image keeps `/workspace` (bot dirs) and `/profiles` (Chromium logins) in ephemeral baked dirs. The shim re-points both onto the persistent volume via symlinks so every bot's files and browser logins survive a redeploy.
 
-Volumes (mounted at the parent directories, as the image's own `postgres-init.sh` requires — a volume mounted directly on the data dir arrives with `lost+found` and `initdb` refuses it):
+One Railway volume (Railway allows exactly **one volume per service**), mounted at the parent directory exactly as the image's own `postgres-init.sh` requires — a volume mounted directly on the data dir arrives with `lost+found` and `initdb` refuses it. Everything durable lives under it:
 
-| Mount | Purpose |
+| Path on the volume | Purpose |
 |---|---|
-| `/var/lib/postgresql` | Postgres cluster, credentials, policy store, audit trail, KEY_ENCRYPTION_KEY file |
-| `/workspace` | Bot working directories |
-| `/profiles` | Per-bot Chromium profile state (logins, cookies) |
+| `/var/lib/postgresql/data` | Postgres cluster — bots, credential vault, policy store, append-only audit trail |
+| `/var/lib/postgresql/pgpassword` | Embedded Postgres superuser password (kept beside the data by the base) |
+| `/var/lib/postgresql/.openbot.key` | The persisted `KEY_ENCRYPTION_KEY` |
+| `/var/lib/postgresql/workspace` | Bot working directories (symlinked as `/workspace`) |
+| `/var/lib/postgresql/profiles` | Per-bot Chromium profile state — logins, cookies (symlinked as `/profiles`) |
 
 **Identity:** `OPENBOT_SINGLE_USER=true` by default — every visitor is the administrator, which is the intended private-desk posture (the upstream's own `.env.example` documents this as *"the line that runs the deployment as one administrator with no sign-in at all"*). For a shared deployment: configure one SSO provider (Google / Microsoft Entra / Okta), add your admin to `INITIAL_ADMIN_EMAILS`, set `OPENBOT_SINGLE_USER=false`, and a real `BETTER_AUTH_SECRET` (32+ chars — the form pre-fills one via `${{secret(48)}}`).
 

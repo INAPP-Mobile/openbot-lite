@@ -20,6 +20,41 @@
 set -eu
 
 VOL=/var/lib/postgresql
+
+# --- Persist bot state on the ONE Railway volume (mounted at $VOL) -----------
+# Railway allows a SINGLE volume per service, and the embedded Postgres is
+# already pinned to /var/lib/postgresql/data, so the one volume mounts there
+# (at the PARENT: a volume mounted ON .../data arrives with lost+found on ext4
+# and initdb refuses it). The bot's two stateful dirs — /workspace (WORKSPACE_DIR,
+# which the base's computer/run hardcodes to /workspace) and /profiles
+# (PROFILES_DIR, Chromium logins, the base default) — are baked into the image
+# as EMPTY ephemeral dirs on the overlay and reset on every redeploy.
+#
+# "Lite: ... /data persistence" + "persistent coworker bots" means those two
+# dirs must survive a redeploy too. Both are empty at build time, so the
+# sanctioned move is to re-point them at subdirs of the one volume via
+# symlinks (created here, as root, before /init drops privileges). The base's
+# own paths still resolve the bot (WORKSPACE_DIR=/workspace → symlink → volume),
+# so no env-override is needed and the base's hardcoded value is not fought.
+# initdb only inspects the .../data subdir, so these siblings are safe.
+for d in workspace profiles; do
+  if [ ! -e "$VOL/$d" ]; then
+    mkdir -p "$VOL/$d" 2>/dev/null || true
+  fi
+  # Bots run as pwuser. Entry point is root (before /init), so we can chown.
+  if command -v chown >/dev/null 2>&1 && id pwuser >/dev/null 2>&1; then
+    chown -R pwuser:pwuser "$VOL/$d" 2>/dev/null || true
+  fi
+  # Replace the baked ephemeral dir with a symlink onto the volume. Only act
+  # if it is a plain dir (not already a symlink, and not something unexpected).
+  if [ -d "/$d" ] && [ ! -L "/$d" ]; then
+    rmdir "/$d" 2>/dev/null || true
+    ln -s "$VOL/$d" "/$d" 2>/dev/null || true
+  elif [ -e "/$d" ] && [ ! -L "/$d" ]; then
+    echo "[openbot-entrypoint] WARN: /$d is not an empty dir; leaving it as-is." >&2
+  fi
+done
+
 KEY_FILE="$VOL/.openbot.key"
 
 export EMBEDDED_POSTGRES="${EMBEDDED_POSTGRES:-on}"

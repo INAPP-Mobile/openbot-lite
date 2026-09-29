@@ -41,12 +41,12 @@
   },
   "AUDIT_RETENTION_DAYS": {
     "defaultValue": "",
-    "description": "How many days of audit trail to keep. Empty (default) keeps everything \u2014 the trail is append-only.",
+    "description": "Empty (default) keeps the whole audit trail. Optional.",
     "isOptional": true
   },
   "MAX_BOTS": {
     "defaultValue": "3",
-    "description": "Maximum bots this deployment holds (upstream default is unlimited)",
+    "description": "Max bots one deployment holds. Optional.",
     "isOptional": true
   },
   "AGENT_STALL_TIMEOUT_MS": {
@@ -56,12 +56,77 @@
   },
   "WORKER_SHARED_SECRET": {
     "defaultValue": "",
-    "description": "Routine-worker handoff secret. Empty disables routine workers.",
+    "description": "Routine-worker handoff secret. Empty = workers off. Optional.",
     "isOptional": true
   },
   "COMPUTER_SANDBOX": {
     "defaultValue": "off",
-    "description": "Chromium sandbox inside the bot computer (off works under default container seccomp).",
+    "description": "Chromium sandbox mode inside the bot computer. off works under default Railway seccomp. Optional.",
+    "isOptional": true
+  },
+  "OPENAI_BASE_URL": {
+    "defaultValue": "",
+    "description": "Empty = OpenAI directly. Set to point at any OpenAI-compatible gateway (vLLM, Ollama, LiteLLM). Optional for the Lite form; the built-in bots still need SOME model key.",
+    "isOptional": true
+  },
+  "BOT_MODEL": {
+    "defaultValue": "",
+    "description": "Optional: override the built-in bot's model (defaults per provider: gpt-5.5, claude-sonnet-4-5, gemini-2.5-flash). Empty uses provider default.",
+    "isOptional": true
+  },
+  "BETTER_AUTH_SECRET": {
+    "value": "",
+    "description": "Session-cookie secret for SSO mode. Leave empty: the entrypoint mints one on first boot and persists it on the volume (redeploys never rotate it). Provide only if you manage it yourself (32+ chars).",
+    "isOptional": true
+  },
+  "INITIAL_ADMIN_EMAILS": {
+    "defaultValue": "",
+    "description": "Comma-separated admin emails (required when enabling SSO). Optional under single-user posture.",
+    "isOptional": true
+  },
+  "GOOGLE_OAUTH_CLIENT_ID": {
+    "defaultValue": "",
+    "description": "Google SSO client ID (any of Google/Microsoft/Okta flips the shim into SSO posture automatically). Optional \u2014 no providers = single-user mode.",
+    "isOptional": true
+  },
+  "GOOGLE_OAUTH_CLIENT_SECRET": {
+    "defaultValue": "",
+    "description": "Google SSO client secret. Optional.",
+    "isOptional": true
+  },
+  "MICROSOFT_OAUTH_CLIENT_ID": {
+    "defaultValue": "",
+    "description": "Microsoft Entra SSO app ID. Optional.",
+    "isOptional": true
+  },
+  "MICROSOFT_OAUTH_CLIENT_SECRET": {
+    "defaultValue": "",
+    "description": "Microsoft Entra SSO client secret. Optional.",
+    "isOptional": true
+  },
+  "MICROSOFT_OAUTH_TENANT_ID": {
+    "defaultValue": "",
+    "description": "Microsoft Entra tenant. Default 'common' admits personal accounts. Optional.",
+    "isOptional": true
+  },
+  "OKTA_OAUTH_CLIENT_ID": {
+    "defaultValue": "",
+    "description": "Okta client ID. Optional.",
+    "isOptional": true
+  },
+  "OKTA_OAUTH_CLIENT_SECRET": {
+    "defaultValue": "",
+    "description": "Okta client secret. Optional.",
+    "isOptional": true
+  },
+  "OKTA_OAUTH_ISSUER": {
+    "defaultValue": "",
+    "description": "Okta issuer URL (https://your.okta.com/oauth2/default). Optional.",
+    "isOptional": true
+  },
+  "AGENT_TOOL_TOKEN": {
+    "defaultValue": "",
+    "description": "Secret a bot presents when calling tools back through this server (required if you use the external AG-UI harness + tool callbacks). Optional.",
     "isOptional": true
   }
 }

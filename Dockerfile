@@ -28,8 +28,6 @@ RUN chmod +x /entrypoint.sh
 EXPOSE 3001
 ENV NODE_ENV=production \
     PORT=3001 \
-    EMBEDDED_POSTGRES=on \
-    WORKSPACE_DIR=/workspace \
-    PROFILES_DIR=/profiles
+    EMBEDDED_POSTGRES=on
 
 ENTRYPOINT ["/entrypoint.sh"]
