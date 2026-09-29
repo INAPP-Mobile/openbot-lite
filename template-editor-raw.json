@@ -1,132 +1,38 @@
 {
   "PORT": {
-    "defaultValue": "3001",
-    "description": "HTTP listen port (must match EXPOSE and the domain port)",
-    "isOptional": true
-  },
-  "SERVER_PORT": {
-    "defaultValue": "3001",
-    "description": "Server port used by the startup proxy check. Must equal PORT.",
-    "isOptional": true
+    "value": "3001",
+    "description": "HTTP listen port. Must match the EXPOSE and Railway domain port."
   },
   "INTELLIGENCE_API_URL": {
-    "defaultValue": "https://api.intelligence.copilotkit.ai",
-    "description": "CopilotKit Intelligence platform API (durable threads, memory, history). Required.",
-    "isOptional": false
+    "value": "https://api.intelligence.copilotkit.ai",
+    "description": "CopilotKit Intelligence platform API (durable threads, memory, history)."
   },
   "INTELLIGENCE_GATEWAY_WS_URL": {
-    "defaultValue": "wss://realtime.intelligence.copilotkit.ai",
-    "description": "CopilotKit Intelligence realtime gateway (WebSocket). Required.",
-    "isOptional": false
+    "value": "wss://realtime.intelligence.copilotkit.ai",
+    "description": "CopilotKit Intelligence realtime gateway (WebSocket) for live agent events."
   },
   "INTELLIGENCE_API_KEY": {
-    "defaultValue": "${{secret(32)}}",
-    "description": "CopilotKit Intelligence project runtime key (cpk-...). Get one at https://intelligence.copilotkit.ai (API Keys) or via the CopilotKit CLI. Required.",
-    "isOptional": false
+    "value": "${{secret(32)}}",
+    "description": "CopilotKit Intelligence project runtime key (cpk-...). Create one at https://intelligence.copilotkit.ai (API Keys) or via the CopilotKit CLI."
   },
   "OPENAI_API_KEY": {
-    "defaultValue": "${{secret(32)}}",
-    "description": "OpenAI (or OpenAI-compatible) API key used by the built-in bots. Replace with a real key. Required.",
-    "isOptional": false
-  },
-  "MANAGED_AGENT_AG_UI_URL": {
-    "defaultValue": "",
-    "description": "External AG-UI harness endpoint (LangGraph/Mastra/CrewAI). Requires MANAGED_AGENT_TOKEN.",
-    "isOptional": true
-  },
-  "MANAGED_AGENT_TOKEN": {
-    "defaultValue": "",
-    "description": "Bearer token presented by the external AG-UI harness when calling tools back.",
-    "isOptional": true
-  },
-  "AUDIT_RETENTION_DAYS": {
-    "defaultValue": "",
-    "description": "Empty (default) keeps the whole audit trail. Optional.",
-    "isOptional": true
-  },
-  "MAX_BOTS": {
-    "defaultValue": "3",
-    "description": "Max bots one deployment holds. Optional.",
-    "isOptional": true
-  },
-  "AGENT_STALL_TIMEOUT_MS": {
-    "defaultValue": "60000",
-    "description": "ms of stream silence before a turn is ended.",
-    "isOptional": true
-  },
-  "WORKER_SHARED_SECRET": {
-    "defaultValue": "",
-    "description": "Routine-worker handoff secret. Empty = workers off. Optional.",
-    "isOptional": true
-  },
-  "COMPUTER_SANDBOX": {
-    "defaultValue": "off",
-    "description": "Chromium sandbox mode inside the bot computer. off works under default Railway seccomp. Optional.",
-    "isOptional": true
+    "value": "${{secret(32)}}",
+    "description": "OpenAI (or any OpenAI-compatible gateway) API key that the built-in bots use. Replace with a real key."
   },
   "OPENAI_BASE_URL": {
-    "defaultValue": "",
-    "description": "Empty = OpenAI directly. Set to point at any OpenAI-compatible gateway (vLLM, Ollama, LiteLLM). Optional for the Lite form; the built-in bots still need SOME model key.",
-    "isOptional": true
+    "value": "",
+    "description": "Optional. Empty = call OpenAI directly. Set to point at any OpenAI-compatible endpoint (vLLM, Ollama, LiteLLM)."
   },
   "BOT_MODEL": {
-    "defaultValue": "",
-    "description": "Optional: override the built-in bot's model (defaults per provider: gpt-5.5, claude-sonnet-4-5, gemini-2.5-flash). Empty uses provider default.",
-    "isOptional": true
-  },
-  "BETTER_AUTH_SECRET": {
     "value": "",
-    "description": "Session-cookie secret for SSO mode. Leave empty: the entrypoint mints one on first boot and persists it on the volume (redeploys never rotate it). Provide only if you manage it yourself (32+ chars).",
-    "isOptional": true
+    "description": "Optional. Override the built-in bots' model. Empty = provider defaults (gpt-5.5 / claude-sonnet-4-5 / gemini-2.5-flash)."
   },
-  "INITIAL_ADMIN_EMAILS": {
-    "defaultValue": "",
-    "description": "Comma-separated admin emails (required when enabling SSO). Optional under single-user posture.",
-    "isOptional": true
+  "MANAGED_AGENT_AG_UI_URL": {
+    "value": "",
+    "description": "Optional. Endpoint of an external AG-UI harness (LangGraph / Mastra / CrewAI) to mount alongside the built-in bots."
   },
-  "GOOGLE_OAUTH_CLIENT_ID": {
-    "defaultValue": "",
-    "description": "Google SSO client ID (any of Google/Microsoft/Okta flips the shim into SSO posture automatically). Optional \u2014 no providers = single-user mode.",
-    "isOptional": true
-  },
-  "GOOGLE_OAUTH_CLIENT_SECRET": {
-    "defaultValue": "",
-    "description": "Google SSO client secret. Optional.",
-    "isOptional": true
-  },
-  "MICROSOFT_OAUTH_CLIENT_ID": {
-    "defaultValue": "",
-    "description": "Microsoft Entra SSO app ID. Optional.",
-    "isOptional": true
-  },
-  "MICROSOFT_OAUTH_CLIENT_SECRET": {
-    "defaultValue": "",
-    "description": "Microsoft Entra SSO client secret. Optional.",
-    "isOptional": true
-  },
-  "MICROSOFT_OAUTH_TENANT_ID": {
-    "defaultValue": "",
-    "description": "Microsoft Entra tenant. Default 'common' admits personal accounts. Optional.",
-    "isOptional": true
-  },
-  "OKTA_OAUTH_CLIENT_ID": {
-    "defaultValue": "",
-    "description": "Okta client ID. Optional.",
-    "isOptional": true
-  },
-  "OKTA_OAUTH_CLIENT_SECRET": {
-    "defaultValue": "",
-    "description": "Okta client secret. Optional.",
-    "isOptional": true
-  },
-  "OKTA_OAUTH_ISSUER": {
-    "defaultValue": "",
-    "description": "Okta issuer URL (https://your.okta.com/oauth2/default). Optional.",
-    "isOptional": true
-  },
-  "AGENT_TOOL_TOKEN": {
-    "defaultValue": "",
-    "description": "Secret a bot presents when calling tools back through this server (required if you use the external AG-UI harness + tool callbacks). Optional.",
-    "isOptional": true
+  "MANAGED_AGENT_TOKEN": {
+    "value": "${{secret(32)}}",
+    "description": "Bearer token the external AG-UI harness presents when this server calls tools back. Only needed with MANAGED_AGENT_AG_UI_URL."
   }
 }
