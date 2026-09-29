@@ -24,10 +24,24 @@ COPY entrypoint.sh /entrypoint.sh
 RUN chmod +x /entrypoint.sh
 
 # The base image's own healthcheck (bun fetch on 127.0.0.1:3001/health) already
-# exists; re-declare it so the docker-format build keeps it visible to tooling.
+# exists, so this template needs no custom healthcheck; EXPOSE keeps the docker
+# format visible to tooling.
 EXPOSE 3001
 ENV NODE_ENV=production \
     PORT=3001 \
     EMBEDDED_POSTGRES=on
+
+# FIX (railway first-boot 502): the base starts its `migrate` oneshot the moment
+# s6 forks the postgres longrun service, before the DB accepts connections. The
+# first query fails with FATAL: the database system is starting up (57P03),
+# migrate exits 1, s6-rc refuses api (a dependent), and /health is a 502.
+# Every fresh/cold boot with EMBEDDED_POSTGRES=on hits this.
+#
+# migrate-wait.sh is byte-for-byte the base /etc/s6-overlay/scripts/migrate.sh
+# plus a bounded `pg_isready` readiness gate before the migration runs. It
+# replaces only that oneshot script; the longrun postgres service itself is
+# left untouched (s6 must keep adopting the postmaster the base way).
+COPY migrate-wait.sh /etc/s6-overlay/scripts/migrate.sh
+RUN chmod 755 /etc/s6-overlay/scripts/migrate.sh
 
 ENTRYPOINT ["/entrypoint.sh"]
