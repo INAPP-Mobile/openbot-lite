@@ -14,7 +14,7 @@
 # s6-overlay, embedded Postgres 16 + pgvector, Chromium for bot computers).
 # https://github.com/CopilotKit/OpenBot
 # -----------------------------------------------------------------------------
-FROM ghcr.io/copilotkit/openbot:v0.0.15
+FROM ghcr.io/copilotkit/openbot:v0.1.0
 
 # The shim runs as the image's entrypoint. It is deliberately small and only
 # adds what a Railway deployment needs that the base does not already do:
